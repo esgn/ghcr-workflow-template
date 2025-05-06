@@ -1,0 +1,57 @@
+name: Main Docker pipeline
+run-name: "[docker] ${{ github.actor }} from ${{ github.ref }} triggered by ${{ github.event_name }} event"
+
+on:
+  push:
+    paths:
+    - src/**
+    - pom.xml
+    - Dockerfile
+    - .m2-settings.xml
+    - .github/workflows/docker*.yml
+  pull_request:
+  delete:
+  create:
+
+
+jobs:
+  build-and-push:
+    if: github.event_name == 'push'
+    uses: ./.github/workflows/docker-build-push.yml
+    permissions:
+      packages: write
+      contents: read
+    with:
+      namespace: "${{ github.repository_owner }}"
+      repository: "${{ github.event.repository.name }}"
+      tag: "${{ github.ref_name }}"
+
+  build:
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/docker-build.yml
+
+  delete-branch-image:
+    if: |
+      github.event_name == 'delete' &&
+      github.event.ref_type == 'branch'
+    permissions:
+      packages: write
+    uses: ./.github/workflows/docker-delete-branch-image.yml
+    with:
+      repository: "${{ github.event.repository.name }}"
+      tag: ${{ github.event.ref }}
+
+  create-branch-image:
+    if: |
+      github.event_name == 'create' &&
+      github.event.ref_type == 'branch'
+    permissions:
+      contents: read
+      packages: write
+    uses: ./.github/workflows/docker-build-push.yml
+    with:
+      namespace: "${{ github.repository_owner }}"
+      repository: "${{ github.event.repository.name }}"
+      tag: "${{ github.event.ref }}"
