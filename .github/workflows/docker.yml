@@ -4,10 +4,8 @@ run-name: "[docker] ${{ github.actor }} from ${{ github.ref }} triggered by ${{ 
 on:
   push:
     paths:
-    - src/**
-    - pom.xml
     - Dockerfile
-    - .m2-settings.xml
+    - README.md
     - .github/workflows/docker*.yml
   pull_request:
   delete:
